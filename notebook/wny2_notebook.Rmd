@@ -1,0 +1,60 @@
+---
+title: "广大培训 Notebook by Mia"
+output:
+  html_document:
+    df_print: paged
+---
+
+## 1.抖音数据分析
+
+首先读取数据，并赋值给douyin，500行13列
+```{r}
+library(tidyverse)
+douyin <- read_csv(file="../data/douyin.csv")    #读取csv;按tab；../往上走一层文件夹;readr更聪明；不用点用下划线
+```
+
+对陌生的数据进行概览；ctrl+alt+i，快捷添加一个chunk；head前6行
+```{r}
+head(douyin)
+
+library(dplyr)
+glimpse(douyin) #将变量竖着进行排布，更清晰地看到有哪些变量
+```
+
+数据分析（即向数据问问题）
+### 1.1 对分类型变量做描述统计，数出每个变量有多少个
+
+#### Q1：哪个地方的网红多
+```{r}
+summary(douyin)
+
+as.factor(douyin$城市) #离散型变量；提取因子;将城市提取成一个因子型的变量???；level&排序???
+summary(as.factor(douyin$城市)) #嵌套写法，精简写法，但不利于思考
+
+#管道操作：把数据当成管道的水一层一层流，处理的结果层层传递；避免一环套一环漏了外括号；属于tidyverse包中，需要library tidyverse才能使用
+douyin$城市 %>%  #通过%>%把数据传递给下一行(水流到了下一行)
+  as.factor() %>%  
+  summary()
+
+library(ggplot2)
+
+#首先要把数据层层层拆解;ggplot所有数据都需要是数据框数据;ggplot还带有统计功能，可以帮助进行统计运算
+ggplot(douyin) + geom_bar(aes(x = 城市, ))
+```
+
+#### Q2.抖音网红分布在哪个年龄段
+```{r}
+library(tidyr)
+tidyr::separate(douyin, 生日, c("year", "month", "day"), sep="-") 
+#调试，追踪变量(object 'year' not found 找不到变量是因为上面的操作没有赋值;一种方法是去赋值，另一种写成管道就好了)
+tidyr::separate(douyin, 生日, c("year", "month", "day"), sep="-") -> a
+
+class(a$year) #检查是什么类型的数据；如果是字符串会报错，要转换成数值型的变量
+a$year <- as.numeric(a$year)
+class(a$year)
+
+mutate(a, age = 2019- year) %>%
+  ggplot()+ geom_density(aes(x = age))
+
+```
+
